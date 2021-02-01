@@ -1,21 +1,29 @@
-CFLAGS=-g
+CFLAGS=-g -Wall
+SOURCES=$(wildcard *.c)
 
+all: test
+
+build: $(addsuffix .exe,$(basename $(SOURCES))) 
+
+test: $(addsuffix .test,$(basename $(SOURCES)))
 
 %.exe: %.c
 	gcc -o $@ $< $(CFLAGS)
 
 %.exe.out: %.exe
-	cat $(<).in | ./$(<) | tr -d '\r' > $@
+	cat $(<).in | ./$(<) 2> $(<).err | tr -d '\r' > $@
+	[ -s $(<).err ] || rm $(<).err
 
-all: querying_the_document.exe
+%.test: %.exe.out
+	diff --color=always -N $(*).exe.exp $(<) && printf "\e[1;32m -> OK! ($(*))\n\e[0;0m" && touch $(@) || rm -f $(@)
 
-test: querying_the_document.exe.out
-	diff --color=always querying_the_document.exe.exp querying_the_document.exe.out && printf "\033[1;32m -> OK!\033[0;30m"
 
-debug: querying_the_document.exe
+%.debug: %.exe
 	 gdb ./$(<) 
 
 clean:
-	rm *.exe.out
-	rm *.exe
+	rm -f *.test
+	rm -f *.exe.out
+	rm -f *.exe
+	rm -f *.err
 	
