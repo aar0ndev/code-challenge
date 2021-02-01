@@ -1,17 +1,17 @@
 CFLAGS=-g -Wall
 
+all: digit_frequency.test dynamic_array_in_c.test
+
 %.exe: %.c
 	gcc -o $@ $< $(CFLAGS)
 
 %.exe.out: %.exe
 	cat $(<).in | ./$(<) | tr -d '\r' > $@
 
-all: digit_frequency.exe
+%.test: %.exe.out
+	diff --color=always -N $(*).exe.exp $(<) && printf "\033[1;32m -> OK!\033[0;30m"
 
-test: digit_frequency.exe.out
-	diff --color=always -N digit_frequency.exe.exp digit_frequency.exe.out && printf "\033[1;32m -> OK!\033[0;30m"
-
-debug: digit_frequency.exe
+%.debug: %.exe
 	 gdb ./$(<) 
 
 clean:
